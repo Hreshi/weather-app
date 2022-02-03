@@ -20,11 +20,11 @@ public class WeatherServlet extends HttpServlet {
 
 	static String step1 = "https://api.openweathermap.org/geo/1.0/direct?q=%s&limit=%s&appid=%s";
 	static String step2 = "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s";
-	static String apikey = "add api key here";
+	static String apikey = "enter api key here";
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
-		res.setContentType("text/html");
+		res.setContentType("application/json");
 		PrintWriter out = res.getWriter();
 
 		String city = req.getPathInfo();
@@ -35,22 +35,38 @@ public class WeatherServlet extends HttpServlet {
 	}
 
 	private String getWeatherData(String city) throws IOException {
-		return getCoordinates(city);
-
+		long start = System.nanoTime();
+		String coData = getCoordinates(city);
+		long end = System.nanoTime();
+		long diff = (end-start)/1000000;
+		System.out.println("Step1 Time:"+diff+"ms");
+		String lat = getValue (coData, "lat");
+		String lon = getValue (coData, "lon");
+		String url = String.format(step2, lat, lon, apikey);
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+		String result = getResponse(request);
+		diff = (System.nanoTime()-end)/1000000;
+		System.out.println("Step2 Time:"+diff+"ms");
+		return result;
 	}
 
 	private String getCoordinates (String city) throws IOException {
-		try {
-			String url = String.format(step1, city, 1, apikey);
-			System.out.println(url);
-			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+		String url = String.format(step1, city, 1, apikey);
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+		return getResponse(request);
+	}
 
+	private String getResponse (HttpRequest request) throws IOException {
+		try {
 			HttpClient client = HttpClient.newHttpClient();
-			HttpResponse<String> res = client.send(request, BodyHandlers.ofString());
-			return res.body();
+			HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+			return response.body();
 		} catch (InterruptedException e) {
-			System.out.println(e);
+			return null;
 		}
-		return null;
+	}
+	private String getValue (String json, String key) {
+		int index = json.indexOf(key);
+		return json.substring(json.indexOf(':', index)+1, json.indexOf(',', index));
 	}
 }
