@@ -67,10 +67,10 @@ public class WeatherServlet extends HttpServlet {
 	}
 	private String getValue (String json1, String ky) {
 		
-		int len = json1.length()-1;
+	int len = json1.length()-1;
         String s = json1.substring(1,len);
         JSONObject json =  new JSONObject(s);
-            return json.get(ky).toString();
+        return json.get(ky).toString();
 
 	}
 }
