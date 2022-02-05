@@ -1,5 +1,5 @@
 package org.aissms;
-
+import org.json.*;
 import javax.servlet.ServletException;
 	
 import javax.servlet.http.HttpServlet;
@@ -20,7 +20,7 @@ public class WeatherServlet extends HttpServlet {
 
 	static String step1 = "https://api.openweathermap.org/geo/1.0/direct?q=%s&limit=%s&appid=%s";
 	static String step2 = "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s";
-	static String apikey = "enter api key here";
+	static String apikey = "f40c476ba641c34571c222dae153cc10";
 
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
@@ -40,7 +40,7 @@ public class WeatherServlet extends HttpServlet {
 		long end = System.nanoTime();
 		long diff = (end-start)/1000000;
 		System.out.println("Step1 Time:"+diff+"ms");
-		String lat = getValue (coData, "lat");
+		String lat = getValue(coData, "lat");
 		String lon = getValue (coData, "lon");
 		String url = String.format(step2, lat, lon, apikey);
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
@@ -49,7 +49,7 @@ public class WeatherServlet extends HttpServlet {
 		System.out.println("Step2 Time:"+diff+"ms");
 		return result;
 	}
-
+		// get coordinates
 	private String getCoordinates (String city) throws IOException {
 		String url = String.format(step1, city, 1, apikey);
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
@@ -65,8 +65,12 @@ public class WeatherServlet extends HttpServlet {
 			return null;
 		}
 	}
-	private String getValue (String json, String key) {
-		int index = json.indexOf(key);
-		return json.substring(json.indexOf(':', index)+1, json.indexOf(',', index));
+	private String getValue (String json1, String ky) {
+		
+	int len = json1.length()-1;
+        String s = json1.substring(1,len);
+        JSONObject json =  new JSONObject(s);
+        return json.get(ky).toString();
+
 	}
 }
